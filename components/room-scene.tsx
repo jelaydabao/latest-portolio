@@ -122,7 +122,6 @@ export function RoomScene({
           className="room-img"
           draggable={false}
         />
-
         {hotspots.map((h) => (
           <button
             key={h.id}

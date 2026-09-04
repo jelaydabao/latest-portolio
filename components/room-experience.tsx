@@ -19,6 +19,7 @@ const SECTION_IDS: SectionId[] = [
   "bookshelf",
   "cassettes",
   "camera",
+  "photobooth",
   "experience",
   "corkboard",
   "contact",

@@ -33,6 +33,7 @@ export type SectionId =
   | "bookshelf"
   | "cassettes"
   | "camera"
+  | "photobooth"
   | "experience"
   | "corkboard"
   | "contact"
@@ -49,6 +50,7 @@ export const sectionMeta: Record<
   bookshelf: { title: "My Bookshelf", wide: true },
   cassettes: { title: "Jamie's Mixtapes" },
   camera: { title: "Photography", wide: true },
+  photobooth: { title: "Photobooth", wide: true },
   experience: { title: "Experience", variant: "paper", wide: true },
   corkboard: { title: "Little Memories", wide: true },
   contact: { title: "Say Hi", variant: "paper" },
@@ -73,6 +75,8 @@ export function Section({ id }: { id: SectionId }) {
       return <MusicSection />
     case "camera":
       return <PhotosSection />
+    case "photobooth":
+      return <PhotoboothSection />
     case "experience":
       return <ExperienceSection />
     case "corkboard":
@@ -614,6 +618,177 @@ function PhotosSection() {
           </figure>
         ))}
       </div>
+    </div>
+  )
+}
+
+/* --------------------------- PHOTOBOOTH --------------------------- */
+function PhotoboothSection() {
+  const [layout, setLayout] = useState<"collage" | "polaroid">("collage")
+  const [images, setImages] = useState<string[]>([])
+  const [filter, setFilter] = useState<"none" | "bw" | "vintage">("none")
+  const [background, setBackground] = useState("#f3e7cd")
+  const [cameraOn, setCameraOn] = useState(false)
+  const [cameraError, setCameraError] = useState("")
+  const videoRef = useRef<HTMLVideoElement>(null)
+  const streamRef = useRef<MediaStream | null>(null)
+
+  const filterStyle = filter === "bw" ? "grayscale(1)" : filter === "vintage" ? "sepia(.55) saturate(.8) contrast(1.08)" : "none"
+
+  useEffect(() => {
+    return () => streamRef.current?.getTracks().forEach((track) => track.stop())
+  }, [])
+
+  function addPhotos(files: FileList | null) {
+    if (!files) return
+    const limit = layout === "collage" ? 2 : 1
+    setImages(Array.from(files).slice(0, limit).map((file) => URL.createObjectURL(file)))
+  }
+
+  function chooseLayout(nextLayout: "collage" | "polaroid") {
+    setLayout(nextLayout)
+    setImages((current) => current.slice(0, nextLayout === "collage" ? 2 : 1))
+  }
+
+  async function startCamera() {
+    if (!navigator.mediaDevices?.getUserMedia) {
+      setCameraError("Camera access is not available here. You can upload a photo instead.")
+      return
+    }
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" }, audio: false })
+      streamRef.current = stream
+      if (videoRef.current) videoRef.current.srcObject = stream
+      setCameraError("")
+      setCameraOn(true)
+    } catch {
+      setCameraError("Camera access was blocked. You can upload a photo instead.")
+    }
+  }
+
+  function stopCamera() {
+    streamRef.current?.getTracks().forEach((track) => track.stop())
+    streamRef.current = null
+    setCameraOn(false)
+  }
+
+  function takePhoto() {
+    const video = videoRef.current
+    if (!video || !video.videoWidth) return
+    const canvas = document.createElement("canvas")
+    canvas.width = video.videoWidth
+    canvas.height = video.videoHeight
+    canvas.getContext("2d")?.drawImage(video, 0, 0)
+    const photo = canvas.toDataURL("image/jpeg", 0.9)
+    const next = layout === "polaroid" ? [photo] : [...images, photo].slice(0, 2)
+    setImages(next)
+    if (next.length >= (layout === "collage" ? 2 : 1)) stopCamera()
+  }
+
+  async function downloadResult() {
+    if (!images.length) return
+    const canvas = document.createElement("canvas")
+    canvas.width = layout === "collage" ? 1200 : 800
+    canvas.height = layout === "collage" ? 800 : 980
+    const context = canvas.getContext("2d")
+    if (!context) return
+    context.fillStyle = background
+    context.fillRect(0, 0, canvas.width, canvas.height)
+    context.filter = filterStyle
+    const loaded = await Promise.all(images.map((src) => new Promise<HTMLImageElement>((resolve) => {
+      const image = new Image()
+      image.onload = () => resolve(image)
+      image.src = src
+    })))
+    if (layout === "collage") {
+      loaded.forEach((image, index) => {
+        const x = index * 600 + 24
+        context.drawImage(image, x, 190, 552, 414)
+      })
+    } else {
+      context.filter = "none"
+      context.fillStyle = "#f3e7cd"
+      context.fillRect(50, 50, 700, 880)
+      context.filter = filterStyle
+      context.drawImage(loaded[0], 90, 90, 620, 620)
+    }
+    context.filter = "none"
+    const link = document.createElement("a")
+    link.download = layout === "collage" ? "my-photobooth-collage.png" : "my-photobooth-polaroid.png"
+    link.href = canvas.toDataURL("image/png")
+    link.click()
+  }
+
+  return (
+    <div>
+      <p className="font-hand" style={{ fontSize: 25, color: "var(--lamp)", marginBottom: 12 }}>
+        make a little memory ♡
+      </p>
+      <div className="flex flex-wrap gap-2" style={{ marginBottom: 14 }}>
+        <button className={`pixel-btn${layout === "collage" ? "" : " pixel-btn--muted"}`} onClick={() => chooseLayout("collage")}>
+          COLLAGE · 2 PHOTOS
+        </button>
+        <button className={`pixel-btn${layout === "polaroid" ? "" : " pixel-btn--muted"}`} onClick={() => chooseLayout("polaroid")}>
+          POLAROID · 1 PHOTO
+        </button>
+      </div>
+
+      {cameraOn ? (
+        <div className="photobooth-camera" style={{ marginBottom: 14 }}>
+          <video ref={videoRef} autoPlay muted playsInline aria-label="Live camera preview" />
+          <div className="flex flex-wrap gap-2" style={{ marginTop: 8 }}>
+            <button className="pixel-btn" onClick={takePhoto}><Camera size={13} /> TAKE PHOTO</button>
+            <button className="pixel-btn pixel-btn--muted" onClick={stopCamera}>CLOSE CAMERA</button>
+          </div>
+        </div>
+      ) : (
+        <div className="flex flex-wrap gap-2" style={{ marginBottom: 14 }}>
+          <button className="pixel-btn" onClick={startCamera}><Camera size={13} /> {images.length ? "TAKE ANOTHER" : "OPEN CAMERA"}</button>
+          <label className="pixel-btn pixel-btn--muted" style={{ cursor: "pointer" }}>
+            UPLOAD INSTEAD
+            <input type="file" accept="image/*" multiple={layout === "collage"} onChange={(e) => addPhotos(e.target.files)} style={{ display: "none" }} />
+          </label>
+        </div>
+      )}
+      {cameraError && <p role="status" style={{ fontSize: 13, color: "#a95745", marginBottom: 12 }}>{cameraError}</p>}
+
+      <div className={`photobooth-preview photobooth-preview--${layout}`} style={{ background }}>
+        {images.length ? images.map((src, index) => (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img key={src} src={src} alt={`Photobooth preview ${index + 1}`} style={{ filter: filterStyle }} />
+        )) : (
+          <span className="font-pixel" style={{ fontSize: 8, color: "#8a6a4a", textAlign: "center" }}>
+            {layout === "collage" ? "[ choose two photos ]" : "[ choose a photo ]"}
+          </span>
+        )}
+      </div>
+      {images.length > 0 && (
+        <button className="pixel-btn" onClick={downloadResult} style={{ marginTop: 12 }}>
+          <Download size={13} /> DOWNLOAD {layout === "collage" ? "COLLAGE" : "POLAROID"}
+        </button>
+      )}
+
+      <div style={{ marginTop: 14 }}>
+        <p className="title-pixel" style={{ fontSize: 9, color: "var(--muted-foreground)", marginBottom: 8 }}>FILTER</p>
+        <div className="flex flex-wrap gap-2">
+          {([['none', 'NO FILTER'], ['bw', 'BLACK & WHITE'], ['vintage', 'VINTAGE / FILM']] as const).map(([value, label]) => (
+            <button key={value} className={`pixel-btn${filter === value ? "" : " pixel-btn--muted"}`} onClick={() => setFilter(value)}>
+              {label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {layout === "collage" && (
+        <div style={{ marginTop: 14 }}>
+          <p className="title-pixel" style={{ fontSize: 9, color: "var(--muted-foreground)", marginBottom: 8 }}>COLLAGE BACKGROUND</p>
+          <div className="flex flex-wrap gap-2">
+            {["#f3e7cd", "#f4c9c0", "#c8dfd5", "#d8c9e8", "#2d2524"].map((color) => (
+              <button key={color} onClick={() => setBackground(color)} aria-label={`Choose ${color} background`} style={{ width: 25, height: 25, padding: 0, background: color, border: background === color ? "3px solid var(--lamp)" : "2px solid var(--gold)", borderRadius: 3 }} />
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   )
 }
