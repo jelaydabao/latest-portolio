@@ -41,6 +41,7 @@ const LOADING_STEPS = ["turning on the lights...", "booting up the computer...",
 const PLANT_LINES = ["still alive, somehow.", "psst... water me?", "growing strong \uD83C\uDF31", "photosynthesizing."]
 const CHAIR_LINES = ["comfiest seat in the house.", "*creak*", "stay a while."]
 const WINDOW_LINES = ["quiet night out there.", "the moon says hi.", "a few stars are out."]
+const LANDING_ROLES = ["Frontend Developer", "Data Analyst", "UI/UX Designer"]
 
 export function RoomExperience() {
   const [phase, setPhase] = useState<Phase>("intro")
@@ -51,6 +52,9 @@ export function RoomExperience() {
   const [musicOn, setMusicOn] = useState(false)
   const [showMusicPrompt, setShowMusicPrompt] = useState(false)
   const [toast, setToast] = useState<{ msg: string; key: number } | null>(null)
+  const [roleIndex, setRoleIndex] = useState(0)
+  const [roleText, setRoleText] = useState("")
+  const [deletingRole, setDeletingRole] = useState(false)
   const laptopClicks = useRef(0)
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
@@ -68,6 +72,26 @@ export function RoomExperience() {
   useEffect(() => {
     setSfxMuted(muted)
   }, [muted])
+
+  useEffect(() => {
+    const role = LANDING_ROLES[roleIndex]
+    const finishedTyping = roleText === role
+    const finishedDeleting = deletingRole && roleText === ""
+    const delay = finishedDeleting ? 120 : finishedTyping ? 550 : deletingRole ? 35 : 55
+    const timer = setTimeout(() => {
+      if (finishedDeleting) {
+        setDeletingRole(false)
+        setRoleIndex((index) => (index + 1) % LANDING_ROLES.length)
+      } else if (finishedTyping) {
+        setDeletingRole(true)
+      } else if (deletingRole) {
+        setRoleText((text) => text.slice(0, -1))
+      } else {
+        setRoleText(role.slice(0, roleText.length + 1))
+      }
+    }, delay)
+    return () => clearTimeout(timer)
+  }, [deletingRole, roleIndex, roleText])
 
   const showToast = useCallback((msg: string) => {
     setToast({ msg, key: Date.now() })
@@ -257,13 +281,16 @@ export function RoomExperience() {
             {phase === "intro" ? (
               <>
                 <h1
-                  className="title-pixel"
-                  style={{ fontSize: "clamp(16px, 4vw, 26px)", color: "var(--lamp)", lineHeight: 1.5, textShadow: "0 3px 0 #1a1310" }}
+                  className="font-hand"
+                  style={{ fontSize: "clamp(48px, 10vw, 82px)", fontWeight: 600, color: "var(--lamp)", lineHeight: 1, textShadow: "0 4px 0 #1a1310", marginBottom: 10 }}
                 >
                   {site.name}
                 </h1>
-                <p className="font-hand" style={{ fontSize: 26, color: "var(--cream)", margin: "14px 0 26px" }}>
-                  {site.tagline}
+                <p style={{ fontSize: 14, color: "var(--cream)", margin: "0 0 14px", letterSpacing: "0.08em" }}>
+                  Jamie Andrea C. Dabao
+                </p>
+                <p className="title-pixel" style={{ fontSize: 10, minHeight: 22, color: "var(--gold)", margin: "0 0 28px" }} aria-label={roleText}>
+                  &gt; {roleText}<span className="blink" aria-hidden>_</span>
                 </p>
                 <button className="pixel-btn" style={{ fontSize: 11, padding: "12px 18px" }} onClick={enterRoom} autoFocus>
                   ↓ COME IN

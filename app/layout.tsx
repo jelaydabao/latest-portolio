@@ -24,7 +24,10 @@ const hand = Caveat({
 })
 
 export const metadata: Metadata = {
-  title: "Jamie's Little Room — a tiny corner of the internet",
+  title: "jamie's portfolio",
+  icons: {
+    icon: "/assets/ramen.png",
+  },
   description:
     "A cozy pixel-art room you can explore. Click around to discover Jamie's projects, photography, books, music and little memories.",
   generator: 'v0.app',

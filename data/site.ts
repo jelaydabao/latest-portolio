@@ -3,7 +3,7 @@
 // =============================================================
 
 export const site = {
-  name: "JAMIE'S LITTLE ROOM",
+  name: "jelay's room",
   owner: "Jamie",
   tagline: "a tiny corner of the internet",
 
