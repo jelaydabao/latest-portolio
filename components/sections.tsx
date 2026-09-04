@@ -630,6 +630,10 @@ function PhotoboothSection() {
   const [background, setBackground] = useState("#f3e7cd")
   const [cameraOn, setCameraOn] = useState(false)
   const [cameraError, setCameraError] = useState("")
+  const [timerSeconds, setTimerSeconds] = useState(3)
+  const [mirror, setMirror] = useState(true)
+  const [countdown, setCountdown] = useState<number | null>(null)
+  const [flash, setFlash] = useState(false)
   const videoRef = useRef<HTMLVideoElement>(null)
   const streamRef = useRef<MediaStream | null>(null)
 
@@ -638,6 +642,13 @@ function PhotoboothSection() {
   useEffect(() => {
     return () => streamRef.current?.getTracks().forEach((track) => track.stop())
   }, [])
+
+  useEffect(() => {
+    if (cameraOn && videoRef.current && streamRef.current) {
+      videoRef.current.srcObject = streamRef.current
+      videoRef.current.play().catch(() => {})
+    }
+  }, [cameraOn])
 
   function addPhotos(files: FileList | null) {
     if (!files) return
@@ -658,7 +669,6 @@ function PhotoboothSection() {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" }, audio: false })
       streamRef.current = stream
-      if (videoRef.current) videoRef.current.srcObject = stream
       setCameraError("")
       setCameraOn(true)
     } catch {
@@ -672,17 +682,35 @@ function PhotoboothSection() {
     setCameraOn(false)
   }
 
-  function takePhoto() {
+  function capturePhoto() {
     const video = videoRef.current
     if (!video || !video.videoWidth) return
     const canvas = document.createElement("canvas")
     canvas.width = video.videoWidth
     canvas.height = video.videoHeight
-    canvas.getContext("2d")?.drawImage(video, 0, 0)
+    const context = canvas.getContext("2d")
+    if (!context) return
+    if (mirror) {
+      context.translate(canvas.width, 0)
+      context.scale(-1, 1)
+    }
+    context.drawImage(video, 0, 0)
     const photo = canvas.toDataURL("image/jpeg", 0.9)
     const next = layout === "polaroid" ? [photo] : [...images, photo].slice(0, 2)
     setImages(next)
     if (next.length >= (layout === "collage" ? 2 : 1)) stopCamera()
+  }
+
+  async function takePhoto() {
+    if (countdown !== null) return
+    for (let remaining = timerSeconds; remaining > 0; remaining -= 1) {
+      setCountdown(remaining)
+      await new Promise((resolve) => window.setTimeout(resolve, 1000))
+    }
+    setCountdown(null)
+    setFlash(true)
+    window.setTimeout(() => setFlash(false), 180)
+    capturePhoto()
   }
 
   async function downloadResult() {
@@ -735,9 +763,19 @@ function PhotoboothSection() {
 
       {cameraOn ? (
         <div className="photobooth-camera" style={{ marginBottom: 14 }}>
-          <video ref={videoRef} autoPlay muted playsInline aria-label="Live camera preview" />
+          <div style={{ position: "relative" }}>
+            <video ref={videoRef} autoPlay muted playsInline aria-label="Live camera preview" style={{ transform: mirror ? "scaleX(-1)" : "none" }} />
+            {countdown !== null && <span className="photobooth-countdown" aria-live="polite">{countdown}</span>}
+            {flash && <span className="photobooth-flash" aria-hidden />}
+          </div>
           <div className="flex flex-wrap gap-2" style={{ marginTop: 8 }}>
             <button className="pixel-btn" onClick={takePhoto}><Camera size={13} /> TAKE PHOTO</button>
+            <button className="pixel-btn pixel-btn--muted" onClick={() => setTimerSeconds((seconds) => seconds === 3 ? 5 : seconds === 5 ? 0 : 3)}>
+              TIMER: {timerSeconds ? `${timerSeconds}S` : "OFF"}
+            </button>
+            <button className={`pixel-btn${mirror ? "" : " pixel-btn--muted"}`} onClick={() => setMirror((value) => !value)}>
+              MIRROR: {mirror ? "ON" : "OFF"}
+            </button>
             <button className="pixel-btn pixel-btn--muted" onClick={stopCamera}>CLOSE CAMERA</button>
           </div>
         </div>

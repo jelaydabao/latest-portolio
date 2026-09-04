@@ -174,6 +174,27 @@
   transform: scaleX(-1);
   background: #1a1310;
 }
+.photobooth-countdown {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: #fff;
+  font-family: var(--font-pixel), monospace;
+  font-size: 46px;
+  text-shadow: 0 3px 0 #241611;
+}
+.photobooth-flash {
+  position: absolute;
+  inset: 0;
+  background: #fff;
+  animation: photoboothFlash 180ms ease-out both;
+  pointer-events: none;
+}
+@keyframes photoboothFlash {
+  from { opacity: 0.95; }
+  to { opacity: 0; }
+}
 .photobooth-preview--collage img {
   width: calc(50% - 4px);
   aspect-ratio: 4 / 3;

@@ -51,6 +51,7 @@ const ariaLabels: Record<string, string> = {
   bookshelf: "Browse the bookshelf",
   cassettes: "Open the mixtapes and music",
   camera: "Open the photography gallery",
+  photobooth: "Open the photobooth",
   experience: "Read my experience",
   corkboard: "Look at the memories on the corkboard",
   contact: "Open contact and socials",
@@ -98,6 +99,7 @@ export function RoomScene({
 
   function handleMouse(e: React.MouseEvent<HTMLDivElement>) {
     if (reducedMotion || !parallaxRef.current) return
+    if (e.target instanceof Element && e.target.closest(".hotspot")) return
     const r = e.currentTarget.getBoundingClientRect()
     const dx = (e.clientX - r.left) / r.width - 0.5
     const dy = (e.clientY - r.top) / r.height - 0.5
@@ -128,6 +130,7 @@ export function RoomScene({
             className="hotspot"
             aria-label={ariaLabels[h.id] ?? h.label}
             onClick={() => onHotspot(h.id)}
+            onMouseMove={(event) => event.stopPropagation()}
             style={{
               left: `${h.box.l}%`,
               top: `${h.box.t}%`,
