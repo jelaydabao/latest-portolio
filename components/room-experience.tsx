@@ -6,6 +6,7 @@ import { RoomScene } from "@/components/room-scene"
 import { PixelWindow } from "@/components/pixel-window"
 import { MusicPlayer } from "@/components/music-player"
 import { Section, sectionMeta, type SectionId } from "@/components/sections"
+import { music } from "@/data/music"
 import { playSfx, setSfxMuted } from "@/lib/sfx"
 import { site } from "@/data/site"
 
@@ -52,6 +53,7 @@ export function RoomExperience() {
   const [active, setActive] = useState<SectionId | null>(null)
   const [muted, setMuted] = useState(false)
   const [musicOn, setMusicOn] = useState(false)
+  const [songIndex, setSongIndex] = useState(0)
   const [showMusicPrompt, setShowMusicPrompt] = useState(false)
   const [toast, setToast] = useState<{ msg: string; key: number } | null>(null)
   const [roleIndex, setRoleIndex] = useState(0)
@@ -136,6 +138,16 @@ export function RoomExperience() {
     })
   }, [])
 
+  const changeSong = useCallback((offset: number) => {
+    setSongIndex((index) => (index + offset + music.songs.length) % music.songs.length)
+    setMusicOn(true)
+  }, [])
+
+  const selectSong = useCallback((index: number) => {
+    setSongIndex(index)
+    setMusicOn(true)
+  }, [])
+
   const handleHotspot = useCallback(
     (id: string) => {
       if (SECTION_IDS.includes(id as SectionId)) {
@@ -204,7 +216,13 @@ export function RoomExperience() {
             </button>
           </div>
 
-          <MusicPlayer playing={musicOn} muted={muted} onToggle={() => setMusicOn((m) => !m)} />
+          <MusicPlayer
+            playing={musicOn}
+            muted={muted}
+            onToggle={() => setMusicOn((m) => !m)}
+            songIndex={songIndex}
+            onSongChange={changeSong}
+          />
         </>
       )}
 
@@ -219,7 +237,16 @@ export function RoomExperience() {
             setActive(null)
           }}
         >
-          <Section id={active} />
+          <Section
+            id={active}
+            musicControls={{
+              songIndex,
+              playing: musicOn,
+              onToggle: () => setMusicOn((m) => !m),
+              onSongChange: changeSong,
+              onSongSelect: selectSong,
+            }}
+          />
         </PixelWindow>
       )}
 

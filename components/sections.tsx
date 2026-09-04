@@ -40,6 +40,14 @@ export type SectionId =
   | "coffee"
   | "help"
 
+export type MusicControls = {
+  songIndex: number
+  playing: boolean
+  onToggle: () => void
+  onSongChange: (offset: number) => void
+  onSongSelect: (index: number) => void
+}
+
 export const sectionMeta: Record<
   SectionId,
   { title: string; variant?: "computer" | "paper" | "default"; wide?: boolean }
@@ -61,7 +69,7 @@ export const sectionMeta: Record<
 const SPINE_COLORS = ["#a95745", "#596044", "#c9794f", "#704638", "#b97a70", "#e8b95c"]
 
 /* ------------------------------------------------------------------ */
-export function Section({ id }: { id: SectionId }) {
+export function Section({ id, musicControls }: { id: SectionId; musicControls?: MusicControls }) {
   switch (id) {
     case "laptop":
       return <ProjectsSection />
@@ -72,7 +80,7 @@ export function Section({ id }: { id: SectionId }) {
     case "bookshelf":
       return <BooksSection />
     case "cassettes":
-      return <MusicSection />
+      return <MusicSection controls={musicControls!} />
     case "camera":
       return <PhotosSection />
     case "photobooth":
@@ -413,60 +421,12 @@ function Stars({ n }: { n: number }) {
 }
 
 /* ------------------------------ MUSIC ----------------------------- */
-function MusicSection() {
-  const audioRef = useRef<HTMLAudioElement>(null)
-  const [songIndex, setSongIndex] = useState(0)
-  const [playing, setPlaying] = useState(false)
-  const [muted, setMuted] = useState(false)
-  const [volume, setVolume] = useState(0.5)
-  const [progress, setProgress] = useState(0)
+function MusicSection({ controls }: { controls: MusicControls }) {
+  const { songIndex, playing, onToggle, onSongChange, onSongSelect } = controls
   const song = music.songs[songIndex]
-
-  useEffect(() => {
-    const audio = audioRef.current
-    if (!audio) return
-    audio.load()
-    setProgress(0)
-    if (playing) audio.play().catch(() => setPlaying(false))
-  }, [songIndex])
-
-  useEffect(() => {
-    const audio = audioRef.current
-    if (!audio) return
-    audio.volume = volume
-    audio.muted = muted
-    if (playing) audio.play().catch(() => setPlaying(false))
-    else audio.pause()
-  }, [playing, muted, volume])
-
-  function selectSong(index: number) {
-    setSongIndex(index)
-    setPlaying(true)
-  }
-
-  function changeSong(offset: number) {
-    selectSong((songIndex + offset + music.songs.length) % music.songs.length)
-  }
-
-  function handleProgress(e: React.ChangeEvent<HTMLInputElement>) {
-    const next = Number(e.target.value)
-    setProgress(next)
-    if (audioRef.current?.duration) audioRef.current.currentTime = (next / 100) * audioRef.current.duration
-  }
 
   return (
     <div>
-      {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
-      <audio
-        ref={audioRef}
-        src={song.src}
-        onTimeUpdate={(e) => {
-          const audio = e.currentTarget
-          setProgress(audio.duration ? (audio.currentTime / audio.duration) * 100 : 0)
-        }}
-        onEnded={() => changeSong(1)}
-        preload="metadata"
-      />
       <div
         className="pixel-card"
         style={{ padding: 16, display: "flex", alignItems: "center", gap: 14, marginBottom: 16 }}
@@ -501,22 +461,15 @@ function MusicSection() {
       </div>
 
       <div className="flex flex-wrap items-center gap-2" style={{ marginBottom: 10 }}>
-        <button className="pixel-btn pixel-btn--muted" onClick={() => changeSong(-1)} aria-label="Previous song">
+        <button className="pixel-btn pixel-btn--muted" onClick={() => onSongChange(-1)} aria-label="Previous song">
           <SkipBack size={13} /> PREV
         </button>
-        <button className="pixel-btn" onClick={() => setPlaying((value) => !value)} aria-label={playing ? "Pause song" : "Play song"}>
+        <button className="pixel-btn" onClick={onToggle} aria-label={playing ? "Pause song" : "Play song"}>
           {playing ? <Pause size={13} /> : <Play size={13} />} {playing ? "PAUSE" : "PLAY"}
         </button>
-        <button className="pixel-btn pixel-btn--muted" onClick={() => changeSong(1)} aria-label="Next song">
+        <button className="pixel-btn pixel-btn--muted" onClick={() => onSongChange(1)} aria-label="Next song">
           <SkipForward size={13} /> NEXT
         </button>
-        <button className="hud-btn" onClick={() => setMuted((value) => !value)} aria-label={muted ? "Unmute music" : "Mute music"}>
-          {muted ? <VolumeX size={16} /> : <Volume2 size={16} />}
-        </button>
-      </div>
-      <div className="flex items-center gap-2" style={{ marginBottom: 16 }}>
-        <input type="range" min={0} max={100} step={0.1} value={progress} onChange={handleProgress} aria-label="Song progress" style={{ flex: 1, accentColor: "var(--gold)" }} />
-        <input type="range" min={0} max={1} step={0.01} value={volume} onChange={(e) => setVolume(Number(e.target.value))} aria-label="Music volume" style={{ width: 74, accentColor: "var(--gold)" }} />
       </div>
 
       {music.spotifyProfile && music.spotifyProfile !== "PASTE_SPOTIFY_LINK_HERE" ? (
@@ -540,7 +493,7 @@ function MusicSection() {
           <button
             key={track.src}
             className="pixel-card"
-            onClick={() => selectSong(i)}
+            onClick={() => onSongSelect(i)}
             aria-pressed={songIndex === i}
             style={{
               padding: "10px 12px",

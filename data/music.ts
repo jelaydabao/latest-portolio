@@ -18,6 +18,7 @@ export const music = {
   ] as { name: string; url: string }[],
 
   songs: [
+    { title: "Anti-hero", artist: "Taylor Swift", src: "/assets/audio/Anti-hero%20-%20Taylor%20Swift.mp3" },
     { title: "Good 4 u", artist: "Olivia Rodrigo", src: "/assets/audio/Good%204%20u%20-%20Olivia%20Rodrigo.mp3" },
     { title: "Manchild", artist: "Sabrina Carpenter", src: "/assets/audio/Manchild%20-%20Sabrina%20Carpenter.mp3" },
     { title: "That's So True", artist: "Gracie Abrams", src: "/assets/audio/That%27s%20So%20True%20-%20Gracie%20Abrams.mp3" },
