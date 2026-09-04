@@ -7,7 +7,7 @@ export const music = {
   spotifyProfile: "PASTE_SPOTIFY_LINK_HERE",
 
   // What you're currently looping (just text — shown on the deck):
-  currentlyListening: "[song — artist]",
+  currentlyListening: "Anti-hero - Taylor Swift",
 
   // Individual playlists. `url` opens in a new tab.
   playlistLinks: [
