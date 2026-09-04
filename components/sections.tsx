@@ -24,6 +24,7 @@ import { books, type Book } from "@/data/books"
 import { photos } from "@/data/photos"
 import { memories, memoryCategories } from "@/data/memories"
 import { music } from "@/data/music"
+import { experiences } from "@/data/experience"
 
 export type SectionId =
   | "laptop"
@@ -32,6 +33,7 @@ export type SectionId =
   | "bookshelf"
   | "cassettes"
   | "camera"
+  | "experience"
   | "corkboard"
   | "contact"
   | "coffee"
@@ -47,6 +49,7 @@ export const sectionMeta: Record<
   bookshelf: { title: "My Bookshelf", wide: true },
   cassettes: { title: "Jamie's Mixtapes" },
   camera: { title: "Photography", wide: true },
+  experience: { title: "Experience", variant: "paper", wide: true },
   corkboard: { title: "Little Memories", wide: true },
   contact: { title: "Say Hi", variant: "paper" },
   coffee: { title: "Currently..." },
@@ -70,6 +73,8 @@ export function Section({ id }: { id: SectionId }) {
       return <MusicSection />
     case "camera":
       return <PhotosSection />
+    case "experience":
+      return <ExperienceSection />
     case "corkboard":
       return <MemoriesSection />
     case "contact":
@@ -677,6 +682,35 @@ function MemoriesSection() {
               {m.caption}
             </figcaption>
           </figure>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+/* --------------------------- EXPERIENCE --------------------------- */
+function ExperienceSection() {
+  return (
+    <div className="paper-lines" style={{ color: "#3a2a20" }}>
+      <p className="font-hand" style={{ fontSize: 26, lineHeight: 1.3, marginBottom: 18 }}>
+        A little timeline of the work I've done so far.
+      </p>
+      <div style={{ display: "grid", gap: 16 }}>
+        {experiences.map((experience) => (
+          <article key={`${experience.role}-${experience.company}`} style={{ borderLeft: "3px solid #cbb27f", paddingLeft: 14 }}>
+            <h3 className="title-pixel" style={{ fontSize: 11, color: "#7a5a3c", lineHeight: 1.5 }}>
+              {experience.role}
+            </h3>
+            <p style={{ fontSize: 16, fontWeight: 700, color: "#a06a3a", marginTop: 3 }}>
+              {experience.company}
+            </p>
+            <p style={{ fontSize: 13, color: "#8a6a4a", marginTop: 2 }}>
+              {experience.dates} · {experience.location}
+            </p>
+            <p style={{ fontSize: 14, lineHeight: 1.55, marginTop: 7 }}>
+              {experience.description}
+            </p>
+          </article>
         ))}
       </div>
     </div>

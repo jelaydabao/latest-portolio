@@ -51,6 +51,7 @@ const ariaLabels: Record<string, string> = {
   bookshelf: "Browse the bookshelf",
   cassettes: "Open the mixtapes and music",
   camera: "Open the photography gallery",
+  experience: "Read my experience",
   corkboard: "Look at the memories on the corkboard",
   contact: "Open contact and socials",
   coffee: "See what I'm currently into",

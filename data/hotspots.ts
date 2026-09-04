@@ -21,6 +21,7 @@ export const hotspots: Hotspot[] = [
   { id: "bookshelf", label: "books", box: { l: 1, t: 8, w: 26, h: 33 }, kind: "section" },
   { id: "cassettes", label: "music", box: { l: 1, t: 42, w: 24, h: 9 }, kind: "section" },
   { id: "camera", label: "photography", box: { l: 28, t: 44, w: 9, h: 9 }, kind: "section" },
+  { id: "experience", label: "experience", box: { l: 38, t: 45, w: 6, h: 9 }, kind: "section" },
   { id: "corkboard", label: "memories", box: { l: 31, t: 15, w: 27, h: 23 }, kind: "section" },
   { id: "contact", label: "say hi", box: { l: 35, t: 35, w: 6, h: 9 }, kind: "section" },
   { id: "coffee", label: "currently", box: { l: 62, t: 47, w: 9, h: 11 }, kind: "section" },
