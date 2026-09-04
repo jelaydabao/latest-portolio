@@ -75,9 +75,9 @@ export function RoomExperience() {
 
   useEffect(() => {
     const role = LANDING_ROLES[roleIndex]
-    const finishedTyping = roleText === role
+    const finishedTyping = !deletingRole && roleText === role
     const finishedDeleting = deletingRole && roleText === ""
-    const delay = finishedDeleting ? 120 : finishedTyping ? 550 : deletingRole ? 35 : 55
+    const delay = finishedDeleting ? 120 : finishedTyping ? 2000 : deletingRole ? 75 : 105
     const timer = setTimeout(() => {
       if (finishedDeleting) {
         setDeletingRole(false)
