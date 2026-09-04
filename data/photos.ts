@@ -1,6 +1,5 @@
 // =============================================================
-// PHOTOGRAPHY  —  your camera roll. Drop images in
-// /public/assets/photos/ and set image: "/assets/photos/photo-01.jpg".
+// PHOTOGRAPHY  —  your camera roll. Photos live in /public/assets/photography/.
 // Entries with image: null render as an empty film frame so the
 // gallery still looks nice while you gather your shots.
 // =============================================================
@@ -16,35 +15,27 @@ export type Photo = {
 
 export const photos: Photo[] = [
   {
-    image: null,
-    title: "[PHOTO TITLE]",
-    date: "[2024]",
-    location: "[where]",
-    camera: "[camera / film]",
-    caption: "[a little caption]",
+    image: "/assets/photography/DSC03903.JPG",
+    title: "DSC03903",
+    date: "",
+    location: "",
+    camera: "",
+    caption: "",
   },
   {
-    image: null,
-    title: "[PHOTO TITLE]",
-    date: "[2024]",
-    location: "[where]",
-    camera: "[camera / film]",
-    caption: "[a little caption]",
+    image: "/assets/photography/DSC03827.JPG",
+    title: "DSC03827",
+    date: "",
+    location: "",
+    camera: "",
+    caption: "",
   },
   {
-    image: null,
-    title: "[PHOTO TITLE]",
-    date: "[2024]",
-    location: "[where]",
-    camera: "[camera / film]",
-    caption: "[a little caption]",
-  },
-  {
-    image: null,
-    title: "[PHOTO TITLE]",
-    date: "[2024]",
-    location: "[where]",
-    camera: "[camera / film]",
-    caption: "[a little caption]",
+    image: "/assets/photography/E58F1109-81CD-4048-A9A8-AA2385BD63F0-34759-0000057758B6964A_VSCO.JPG",
+    title: "E58F1109",
+    date: "",
+    location: "",
+    camera: "",
+    caption: "",
   },
 ]

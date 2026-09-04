@@ -10,20 +10,19 @@ export const site = {
   // ---- CONTACT / SOCIALS -------------------------------------
   // Leave a field as an empty string "" to hide that link.
   contact: {
-    email: "", // e.g. "hello@jamie.dev"
-    github: "", // e.g. "https://github.com/yourname"
-    linkedin: "", // e.g. "https://linkedin.com/in/yourname"
+    email: "jelaydabao@gmail.com",
+    github: "https://github.com/jelaydabao",
+    linkedin: "https://www.linkedin.com/in/jamie-dabao-69651b305/",
     portfolio: "", // e.g. "https://jamie.dev"
   },
 }
 
 // ---- RESUME -------------------------------------------------
-// Drop your resume PDF at /public/assets/resume/resume.pdf
-// (or change the path below). The viewer embeds it and offers a
+// The viewer embeds the PDF and offers a
 // download button. If the file is missing, a friendly note shows.
 export const resume = {
-  file: "/assets/resume/resume.pdf",
-  downloadName: "resume.pdf",
+  file: "/assets/resume/JAMIE%20DABAO%20CV%20(AUGUST%202026)%20(2).pdf",
+  downloadName: "JAMIE DABAO CV (AUGUST 2026) (2).pdf",
 }
 
 // Tech stack shown inside the laptop / projects window.

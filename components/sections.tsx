@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import {
   ExternalLink,
   Mail,
@@ -11,6 +11,11 @@ import {
   Camera,
   Music2,
   Play,
+  Pause,
+  SkipBack,
+  SkipForward,
+  Volume2,
+  VolumeX,
 } from "lucide-react"
 import { projects, type Project } from "@/data/projects"
 import { site, techStack, resume } from "@/data/site"
@@ -126,9 +131,20 @@ function ProjectCard({ p }: { p: Project }) {
         )}
       </div>
       <div className="p-3">
-        <h4 className="title-pixel" style={{ fontSize: 11, color: "var(--cream)" }}>
-          {p.title}
-        </h4>
+        <div className="flex items-center gap-2">
+          {p.logo && (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={p.logo}
+              alt=""
+              aria-hidden="true"
+              style={{ width: 28, height: 28, objectFit: "contain", imageRendering: "pixelated" }}
+            />
+          )}
+          <h4 className="title-pixel" style={{ fontSize: 11, color: "var(--cream)" }}>
+            {p.title}
+          </h4>
+        </div>
         <p style={{ fontSize: 13, margin: "7px 0", color: "var(--muted-foreground)", lineHeight: 1.5 }}>
           {p.description}
         </p>
@@ -148,7 +164,7 @@ function ProjectCard({ p }: { p: Project }) {
           )}
           {p.liveDemo && (
             <a className="pixel-btn" href={p.liveDemo} target="_blank" rel="noreferrer">
-              <Play size={12} /> DEMO
+              <Play size={12} /> LIVE VIEW
             </a>
           )}
         </div>
@@ -271,26 +287,32 @@ function BooksSection() {
     <div>
       {groups.map((g) => {
         const list = books.filter((b) => b.status === g.key)
-        if (!list.length) return null
+        if (!list.length && g.key !== "reading") return null
         return (
           <div key={g.key} style={{ marginBottom: 18 }}>
             <h3 className="title-pixel" style={{ fontSize: 11, color: "var(--lamp)" }}>
               {g.label}
             </h3>
             <hr className="rule" />
-            <div className="flex flex-wrap gap-3">
-              {list.map((b, i) => (
-                <button
-                  key={b.title + i}
-                  className="hotspot"
-                  onClick={() => setSelected(b)}
-                  style={{ position: "relative", textAlign: "left" }}
-                  aria-label={`Open details for ${b.title}`}
-                >
-                  <BookSpine book={b} index={i} />
-                </button>
-              ))}
-            </div>
+            {list.length ? (
+              <div className="flex flex-wrap gap-3">
+                {list.map((b, i) => (
+                  <button
+                    key={b.title + i}
+                    className="hotspot"
+                    onClick={() => setSelected(b)}
+                    style={{ position: "relative", textAlign: "left" }}
+                    aria-label={`Open details for ${b.title}`}
+                  >
+                    <BookSpine book={b} index={i} />
+                  </button>
+                ))}
+              </div>
+            ) : (
+              <p className="font-hand" style={{ fontSize: 21, color: "var(--muted-foreground)" }}>
+                Nothing at the moment! I'm in a bit of a reading slump 😭
+              </p>
+            )}
           </div>
         )
       })}
@@ -310,6 +332,11 @@ function BooksSection() {
               <p style={{ fontSize: 14, color: "var(--muted-foreground)", lineHeight: 1.6, marginTop: 8 }}>
                 {selected.thoughts}
               </p>
+              {selected.link && (
+                <a className="pixel-btn" href={selected.link} target="_blank" rel="noreferrer" style={{ marginTop: 10 }}>
+                  <ExternalLink size={12} /> {selected.linkLabel ?? "OPEN LINK"}
+                </a>
+              )}
               {selected.favoriteQuote && (
                 <p className="font-hand" style={{ fontSize: 20, color: "var(--lamp)", marginTop: 8 }}>
                   {`"${selected.favoriteQuote}"`}
@@ -378,8 +405,59 @@ function Stars({ n }: { n: number }) {
 
 /* ------------------------------ MUSIC ----------------------------- */
 function MusicSection() {
+  const audioRef = useRef<HTMLAudioElement>(null)
+  const [songIndex, setSongIndex] = useState(0)
+  const [playing, setPlaying] = useState(false)
+  const [muted, setMuted] = useState(false)
+  const [volume, setVolume] = useState(0.5)
+  const [progress, setProgress] = useState(0)
+  const song = music.songs[songIndex]
+
+  useEffect(() => {
+    const audio = audioRef.current
+    if (!audio) return
+    audio.load()
+    setProgress(0)
+    if (playing) audio.play().catch(() => setPlaying(false))
+  }, [songIndex])
+
+  useEffect(() => {
+    const audio = audioRef.current
+    if (!audio) return
+    audio.volume = volume
+    audio.muted = muted
+    if (playing) audio.play().catch(() => setPlaying(false))
+    else audio.pause()
+  }, [playing, muted, volume])
+
+  function selectSong(index: number) {
+    setSongIndex(index)
+    setPlaying(true)
+  }
+
+  function changeSong(offset: number) {
+    selectSong((songIndex + offset + music.songs.length) % music.songs.length)
+  }
+
+  function handleProgress(e: React.ChangeEvent<HTMLInputElement>) {
+    const next = Number(e.target.value)
+    setProgress(next)
+    if (audioRef.current?.duration) audioRef.current.currentTime = (next / 100) * audioRef.current.duration
+  }
+
   return (
     <div>
+      {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
+      <audio
+        ref={audioRef}
+        src={song.src}
+        onTimeUpdate={(e) => {
+          const audio = e.currentTarget
+          setProgress(audio.duration ? (audio.currentTime / audio.duration) * 100 : 0)
+        }}
+        onEnded={() => changeSong(1)}
+        preload="metadata"
+      />
       <div
         className="pixel-card"
         style={{ padding: 16, display: "flex", alignItems: "center", gap: 14, marginBottom: 16 }}
@@ -398,8 +476,8 @@ function MusicSection() {
           aria-hidden
         >
           <div style={{ display: "flex", gap: 14 }}>
-            <span style={{ width: 12, height: 12, borderRadius: "50%", border: "2px solid var(--lamp)" }} />
-            <span style={{ width: 12, height: 12, borderRadius: "50%", border: "2px solid var(--lamp)" }} />
+            <span style={{ width: 12, height: 12, borderRadius: "50%", border: "2px solid var(--lamp)", animation: playing ? "spinReels 1.2s linear infinite" : "none" }} />
+            <span style={{ width: 12, height: 12, borderRadius: "50%", border: "2px solid var(--lamp)", animation: playing ? "spinReels 1.2s linear infinite" : "none" }} />
           </div>
         </div>
         <div>
@@ -407,9 +485,29 @@ function MusicSection() {
             NOW PLAYING
           </p>
           <p className="font-hand" style={{ fontSize: 24, color: "var(--lamp)", lineHeight: 1.1 }}>
-            {music.currentlyListening}
+            {song.title} - {song.artist}
           </p>
+          <p style={{ fontSize: 12, color: "var(--muted-foreground)", marginTop: 4 }}>{playing ? "PLAYING" : "PAUSED"}</p>
         </div>
+      </div>
+
+      <div className="flex flex-wrap items-center gap-2" style={{ marginBottom: 10 }}>
+        <button className="pixel-btn pixel-btn--muted" onClick={() => changeSong(-1)} aria-label="Previous song">
+          <SkipBack size={13} /> PREV
+        </button>
+        <button className="pixel-btn" onClick={() => setPlaying((value) => !value)} aria-label={playing ? "Pause song" : "Play song"}>
+          {playing ? <Pause size={13} /> : <Play size={13} />} {playing ? "PAUSE" : "PLAY"}
+        </button>
+        <button className="pixel-btn pixel-btn--muted" onClick={() => changeSong(1)} aria-label="Next song">
+          <SkipForward size={13} /> NEXT
+        </button>
+        <button className="hud-btn" onClick={() => setMuted((value) => !value)} aria-label={muted ? "Unmute music" : "Mute music"}>
+          {muted ? <VolumeX size={16} /> : <Volume2 size={16} />}
+        </button>
+      </div>
+      <div className="flex items-center gap-2" style={{ marginBottom: 16 }}>
+        <input type="range" min={0} max={100} step={0.1} value={progress} onChange={handleProgress} aria-label="Song progress" style={{ flex: 1, accentColor: "var(--gold)" }} />
+        <input type="range" min={0} max={1} step={0.01} value={volume} onChange={(e) => setVolume(Number(e.target.value))} aria-label="Music volume" style={{ width: 74, accentColor: "var(--gold)" }} />
       </div>
 
       {music.spotifyProfile && music.spotifyProfile !== "PASTE_SPOTIFY_LINK_HERE" ? (
@@ -425,17 +523,16 @@ function MusicSection() {
       )}
 
       <h3 className="title-pixel" style={{ fontSize: 11, marginTop: 20, color: "var(--lamp)" }}>
-        MIXTAPES
+        MIXTAPE SONGS
       </h3>
       <hr className="rule" />
       <div className="grid gap-2 sm:grid-cols-2">
-        {music.playlistLinks.map((pl, i) => (
-          <a
-            key={i}
+        {music.songs.map((track, i) => (
+          <button
+            key={track.src}
             className="pixel-card"
-            href={pl.url || undefined}
-            target={pl.url ? "_blank" : undefined}
-            rel="noreferrer"
+            onClick={() => selectSong(i)}
+            aria-pressed={songIndex === i}
             style={{
               padding: "10px 12px",
               display: "flex",
@@ -443,7 +540,8 @@ function MusicSection() {
               gap: 10,
               color: "var(--cream)",
               textDecoration: "none",
-              opacity: pl.url ? 1 : 0.55,
+              opacity: songIndex === i ? 1 : 0.75,
+              borderColor: songIndex === i ? "var(--lamp)" : undefined,
             }}
           >
             <span
@@ -454,8 +552,8 @@ function MusicSection() {
                 borderRadius: 2,
               }}
             />
-            <span style={{ fontSize: 14 }}>{pl.name}</span>
-          </a>
+            <span style={{ fontSize: 14 }}>{track.title} <span style={{ color: "var(--muted-foreground)", fontSize: 11 }}>— {track.artist}</span></span>
+          </button>
         ))}
       </div>
     </div>
@@ -604,6 +702,8 @@ function FilterChip({ label, active, onClick }: { label: string; active: boolean
 /* ------------------------------ CONTACT --------------------------- */
 function ContactSection() {
   const c = site.contact
+  const [message, setMessage] = useState("")
+  const [formNote, setFormNote] = useState("")
   const links = [
     c.email && { icon: <Mail size={13} />, label: "EMAIL", href: `mailto:${c.email}` },
     c.github && { icon: <ExternalLink size={13} />, label: "GITHUB", href: c.github },
@@ -619,6 +719,48 @@ function ContactSection() {
       <p style={{ fontSize: 13, color: "#7a5a3c", marginBottom: 16 }}>
         {"Whether it's a project, an idea, or just a hello."}
       </p>
+      <p style={{ fontSize: 13, color: "#7a5a3c", marginBottom: 16 }}>
+        {"You can also reach me through my "}
+        <a href={c.linkedin} target="_blank" rel="noreferrer" style={{ color: "#a06a3a", textDecoration: "underline" }}>
+          LinkedIn
+        </a>
+        {" and "}
+        <a href={c.github} target="_blank" rel="noreferrer" style={{ color: "#a06a3a", textDecoration: "underline" }}>
+          GitHub
+        </a>
+        {"."}
+      </p>
+      <form
+        onSubmit={(e) => {
+          e.preventDefault()
+          if (!message.trim()) return
+          if (!c.email) {
+            setFormNote("Add your email in data/site.ts to receive messages.")
+            return
+          }
+          window.location.href = `mailto:${c.email}?subject=Hello from your little room&body=${encodeURIComponent(message)}`
+          setMessage("")
+          setFormNote("Your email app should open with the message ready to send.")
+        }}
+        style={{ marginBottom: 18 }}
+      >
+        <label htmlFor="contact-message" className="title-pixel" style={{ display: "block", fontSize: 10, color: "#7a5a3c", marginBottom: 7 }}>
+          LEAVE A MESSAGE
+        </label>
+        <textarea
+          id="contact-message"
+          value={message}
+          onChange={(e) => setMessage(e.target.value)}
+          placeholder="write me a little note..."
+          rows={4}
+          required
+          style={{ width: "100%", resize: "vertical", padding: 10, border: "2px solid #cbb27f", background: "rgba(255,255,255,.42)", color: "#3a2a20", fontFamily: "inherit", fontSize: 16, lineHeight: 1.4, borderRadius: 3 }}
+        />
+        <button type="submit" className="pixel-btn" style={{ marginTop: 8 }}>
+          <Mail size={13} /> SEND MESSAGE
+        </button>
+        {formNote && <p role="status" style={{ fontSize: 13, color: "#7a5a3c", marginTop: 8 }}>{formNote}</p>}
+      </form>
       {links.length ? (
         <div className="flex flex-wrap gap-2">
           {links.map((l) => (
