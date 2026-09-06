@@ -91,4 +91,26 @@ export const projects: Project[] = [
     liveDemo: "https://jamie-portfolio-aa81.vercel.app/",
     featured: false,
   },
+  {
+    title: "The Last Light",
+    description:
+      "A pixel-art detective mystery game set inside an isolated hotel during a storm. Explore locations, interview suspects, collect evidence, solve puzzles, uncover contradictions, and make the final accusation across multiple endings.",
+    image: "/assets/projects/The%20Last%20Night.png",
+    logo: null,
+    technologies: [
+      "Next.js",
+      "React",
+      "TypeScript",
+      "Tailwind CSS",
+      "CSS Animations",
+      "HTML5 Audio",
+      "localStorage",
+      "SVG",
+      "Vercel Analytics",
+    ],
+    role: "Solo Developer",
+    github: "",
+    liveDemo: "",
+    featured: false,
+  },
 ]
