@@ -32,6 +32,18 @@ export const projects: Project[] = [
     featured: true,
   },
   {
+    title: "Strive Quest — Academic Tracker",
+    description:
+      "Randomly made an academic tracker even though I already graduated lol. I guess I just missed romanticizing my uni/student days. 🎀 Inspired by Quizlet, but with my own little twist—turning subjects into quests and tracking study progress through a cute digital scrapbook filled with XP, flashcards, quizzes, achievements, and little reminders of how far you've come. ⭐📚🌷",
+    image: "/assets/projects/Strive%20Quest.png",
+    logo: null,
+    technologies: ["Next.js", "TypeScript", "Tailwind CSS", "Supabase", "PostgreSQL", "Vercel"],
+    role: "Solo Developer",
+    github: "",
+    liveDemo: "https://strivequest.vercel.app/",
+    featured: false,
+  },
+  {
     title: "velvet & film",
     description:
       "A vintage-inspired photobooth website with customizable photo strips, multiple layouts, playful filters, stickers, and thoughtful details designed to make every session feel special.",
