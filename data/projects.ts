@@ -110,7 +110,7 @@ export const projects: Project[] = [
     ],
     role: "Solo Developer",
     github: "",
-    liveDemo: "",
+    liveDemo: "https://the-last-night-rho.vercel.app/",
     featured: false,
   },
 ]
